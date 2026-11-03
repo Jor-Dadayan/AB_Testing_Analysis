@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "experimentlab"
+version = "0.1.0"
+description = "End-to-End A/B Testing & Experimentation Analytics Platform"
+requires-python = ">=3.12"
+dependencies = [
+    "pandas",
+    "numpy",
+    "scipy",
+    "statsmodels",
+    "matplotlib",
+    "seaborn",
+    "plotly",
+    "sqlalchemy",
+    "psycopg2-binary",
+    "pyyaml",
+    "python-dotenv",
+    "streamlit",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-cov", "ruff", "jupyter", "pre-commit"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B"]

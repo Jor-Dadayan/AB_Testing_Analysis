@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.pytest_cache/
+.ruff_cache/
+.env
+logs/
+data/raw/*.csv
+data/processed/*
+data/simulation/
+!data/raw/.gitkeep
+!data/processed/.gitkeep
