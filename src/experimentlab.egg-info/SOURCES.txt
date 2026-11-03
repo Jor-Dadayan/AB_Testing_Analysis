@@ -13,6 +13,13 @@ src/experimentlab/data/__init__.py
 src/experimentlab/data/generator.py
 src/experimentlab/data/quality.py
 src/experimentlab/db/__init__.py
+src/experimentlab/db/checks.py
+src/experimentlab/db/connection.py
+src/experimentlab/db/loader.py
+src/experimentlab/db/queries.py
+src/experimentlab/db/validation.py
 src/experimentlab/viz/__init__.py
+tests/test_db_integration.py
+tests/test_db_validation.py
 tests/test_generator.py
 tests/test_smoke.py
