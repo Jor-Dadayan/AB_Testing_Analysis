@@ -1,6 +1,7 @@
 README.md
 pyproject.toml
 src/experimentlab/__init__.py
+src/experimentlab/config.py
 src/experimentlab.egg-info/PKG-INFO
 src/experimentlab.egg-info/SOURCES.txt
 src/experimentlab.egg-info/dependency_links.txt
@@ -9,6 +10,9 @@ src/experimentlab.egg-info/top_level.txt
 src/experimentlab/analysis/__init__.py
 src/experimentlab/app/__init__.py
 src/experimentlab/data/__init__.py
+src/experimentlab/data/generator.py
+src/experimentlab/data/quality.py
 src/experimentlab/db/__init__.py
 src/experimentlab/viz/__init__.py
+tests/test_generator.py
 tests/test_smoke.py
