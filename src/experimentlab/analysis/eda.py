@@ -55,20 +55,24 @@ def _finalize(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def load_analytics_frame() -> tuple[pd.DataFrame, str]:
-    """Читает user_analytics из PostgreSQL, при ошибке берёт CSV. Возвращает (df, источник)."""
+    """Читает user_analytics из PostgreSQL; при ошибке или пустой таблице берёт CSV."""
+    reason = ""
     try:
         engine = get_engine()
         try:
             df = query_file(engine, SQL_DIR / "05_eda_extract.sql")
         finally:
             engine.dispose()
-        source = "PostgreSQL: таблица user_analytics"
+        if not df.empty:
+            return _finalize(df), "PostgreSQL: таблица user_analytics"
+        reason = "таблица user_analytics пуста"
     except SQLAlchemyError:
-        cfg = load_config()
-        raw = pd.read_csv(PROJECT_ROOT / cfg["paths"]["raw_csv"])
-        df = _derive_from_csv(raw)
-        source = "CSV: data/raw/users.csv (PostgreSQL недоступен)"
-    return _finalize(df), source
+        reason = "PostgreSQL недоступен"
+    cfg = load_config()
+    path = PROJECT_ROOT / cfg["paths"]["raw_csv"]
+    if not path.exists():
+        raise FileNotFoundError(f"{reason}, и файла {path} нет: выполните scripts/generate_data.py")
+    return load_csv_frame(path), f"CSV: {cfg['paths']['raw_csv']} ({reason})"
 
 
 def iqr_summary(s: pd.Series, k: float = 1.5) -> dict:

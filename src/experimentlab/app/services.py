@@ -30,11 +30,11 @@ FILTER_SPECS = {
 VALUE_LABELS = {"is_new_user": {"0": "Вернувшиеся", "1": "Новые"}}
 
 
-class DataUnavailable(Exception):
+class DataUnavailableError(Exception):
     """Нет источника данных (ни базы, ни файла)."""
 
 
-class AnalysisUnavailable(Exception):
+class AnalysisUnavailableError(Exception):
     """Анализ невозможен для выбранных данных (мало пользователей, ошибка расчёта)."""
 
 
@@ -84,7 +84,7 @@ def _load_primary(cfg: dict) -> tuple[pd.DataFrame, str]:
             log.warning("Чтение из PostgreSQL не удалось, используется CSV")
     path = PROJECT_ROOT / cfg["paths"]["raw_csv"]
     if not path.exists():
-        raise DataUnavailable(
+        raise DataUnavailableError(
             f"Нет данных: {status.message}, и файла {cfg['paths']['raw_csv']} тоже нет."
         )
     return eda.load_csv_frame(path), f"CSV: {cfg['paths']['raw_csv']} ({status.message})"
@@ -95,19 +95,19 @@ def load_experiment(exp_id: str) -> tuple[pd.DataFrame, str]:
     cfg = load_config()
     spec = next((e for e in list_experiments(cfg) if e["id"] == exp_id), None)
     if spec is None:
-        raise DataUnavailable(f"Неизвестный эксперимент: {exp_id}")
+        raise DataUnavailableError(f"Неизвестный эксперимент: {exp_id}")
     if spec["source"] == "primary":
         df, source = _load_primary(cfg)
     else:
         path = PROJECT_ROOT / spec["path"]
         if not path.exists():
-            raise DataUnavailable(
+            raise DataUnavailableError(
                 f"Файл {spec['path']} не найден. Создайте демо-эксперименты: "
                 "python scripts/build_experiments.py"
             )
         df, source = eda.load_csv_frame(path), f"CSV: {spec['path']}"
     if df.empty:
-        raise DataUnavailable("Источник данных вернул пустую таблицу.")
+        raise DataUnavailableError("Источник данных вернул пустую таблицу.")
     return df, source
 
 
@@ -124,12 +124,14 @@ def apply_filters(df: pd.DataFrame, key: FilterKey) -> pd.DataFrame:
 
 def _check_size(df: pd.DataFrame, min_users: int) -> None:
     if df.empty:
-        raise AnalysisUnavailable("После применения фильтров не осталось ни одного пользователя.")
+        raise AnalysisUnavailableError(
+            "После применения фильтров не осталось ни одного пользователя."
+        )
     counts = df["group_name"].astype(str).value_counts()
     for g in ("control", "treatment"):
         n = int(counts.get(g, 0))
         if n < min_users:
-            raise AnalysisUnavailable(
+            raise AnalysisUnavailableError(
                 f"В группе {g} только {n:,} пользователей (минимум для анализа: {min_users:,})."
             )
 
@@ -152,7 +154,7 @@ def run_cached(exp_id: str, key: FilterKey) -> AdvancedResult:
         return run_advanced(df, cfg, source)
     except Exception as exc:  # граница интерфейса: любая ошибка расчёта становится сообщением
         log.exception("Анализ не выполнен")
-        raise AnalysisUnavailable(
+        raise AnalysisUnavailableError(
             f"Анализ не удалось выполнить для этих данных ({type(exc).__name__}: {exc})"
         ) from exc
 
@@ -179,7 +181,7 @@ def build_context(exp_id: str, key: FilterKey) -> Context:
     )
     try:
         df_all, source = load_experiment(exp_id)
-    except DataUnavailable as exc:
+    except DataUnavailableError as exc:
         return Context(
             source="—",
             df=None,
@@ -191,7 +193,7 @@ def build_context(exp_id: str, key: FilterKey) -> Context:
         )
     try:
         official = run_cached(exp_id, ())
-    except AnalysisUnavailable as exc:
+    except AnalysisUnavailableError as exc:
         return Context(
             source=source,
             df=df_all,
@@ -206,7 +208,7 @@ def build_context(exp_id: str, key: FilterKey) -> Context:
     df = apply_filters(df_all, key)
     try:
         result = run_cached(exp_id, key)
-    except AnalysisUnavailable as exc:
+    except AnalysisUnavailableError as exc:
         return Context(
             source=source,
             df=df,

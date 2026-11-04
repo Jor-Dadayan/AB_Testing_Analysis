@@ -2,19 +2,11 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-
 import pandas as pd
 from scipy import stats
 
+from experimentlab.check_report import Check, print_check_report
 from experimentlab.data import generator as g
-
-
-@dataclass
-class Check:
-    name: str
-    passed: bool
-    detail: str = ""
 
 
 def run_quality_checks(df: pd.DataFrame, cfg: dict) -> list[Check]:
@@ -95,12 +87,5 @@ def run_quality_checks(df: pd.DataFrame, cfg: dict) -> list[Check]:
 
 
 def print_report(checks: list[Check]) -> bool:
-    """Печатает отчёт, возвращает True, если все проверки пройдены."""
-    for c in checks:
-        mark = "OK  " if c.passed else "FAIL"
-        extra = f"  ({c.detail})" if c.detail else ""
-        print(f"[{mark}] {c.name}{extra}")
-    ok = sum(c.passed for c in checks)
-    status = "PASSED" if ok == len(checks) else "FAILED"
-    print(f"\nQuality report {status}: {ok}/{len(checks)} checks ok")
-    return ok == len(checks)
+    """Печатает отчёт проверок датасета, возвращает True, если всё пройдено."""
+    return print_check_report(checks, "Quality report")

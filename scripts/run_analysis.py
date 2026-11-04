@@ -2,7 +2,6 @@
 
 import argparse
 import json
-import logging
 import sys
 from pathlib import Path
 
@@ -10,6 +9,7 @@ from experimentlab.analysis.eda import load_analytics_frame
 from experimentlab.analysis.engine import run_analysis
 from experimentlab.analysis.report import render_report
 from experimentlab.config import PROJECT_ROOT, load_config
+from experimentlab.logging_setup import configure_logging
 
 
 def main() -> int:
@@ -18,7 +18,7 @@ def main() -> int:
     ap.add_argument("--json", default=str(PROJECT_ROOT / "reports" / "analysis_results.json"))
     args = ap.parse_args()
 
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
+    configure_logging()
     cfg = load_config()
     df, source = load_analytics_frame()
     result = run_analysis(df, cfg, source)

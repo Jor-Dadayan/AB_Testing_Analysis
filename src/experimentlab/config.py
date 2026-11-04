@@ -16,7 +16,7 @@ load_dotenv(PROJECT_ROOT / ".env")
 
 def load_config(path: Path | str | None = None) -> dict:
     """Читает YAML-конфиг и возвращает словарь."""
-    with open(path or DEFAULT_CONFIG, encoding="utf-8") as f:
+    with open(path or os.getenv("EXPERIMENTLAB_CONFIG") or DEFAULT_CONFIG, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 

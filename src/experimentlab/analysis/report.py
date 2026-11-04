@@ -10,6 +10,7 @@ from scipy import stats
 
 from experimentlab.analysis.conversion import p_value_from_z
 from experimentlab.analysis.engine import AnalysisResult
+from experimentlab.analysis.interpretation import fmt_pp as pp
 from experimentlab.analysis.interpretation import p_value_statement
 from experimentlab.config import PROJECT_ROOT
 
@@ -34,10 +35,6 @@ def md_table(headers: list[str], rows: list[list]) -> str:
 
 def pct(v: float, digits: int = 2) -> str:
     return f"{v * 100:.{digits}f}%"
-
-
-def pp(v: float) -> str:
-    return f"{v * 100:+.2f} п.п."
 
 
 def fmt_p(p: float) -> str:

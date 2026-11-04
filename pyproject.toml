@@ -30,6 +30,11 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "-ra"
+markers = [
+    "slow: полный анализ на 100 000 пользователей (десятки секунд)",
+    "integration: нужен PostgreSQL (docker compose up -d db)",
+]
 
 [tool.ruff]
 line-length = 100
@@ -37,11 +42,17 @@ extend-exclude = ["notebooks"]
 target-version = "py312"
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "B"]
+select = ["E", "F", "I", "B", "N", "S", "T20", "BLE"]
 ignore = ["E501"]
 
 [tool.ruff.lint.per-file-ignores]
-"src/experimentlab/analysis/report.py" = ["E501"]
-"src/experimentlab/analysis/interpretation.py" = ["E501"]
-"src/experimentlab/analysis/hypothesis.py" = ["E501"]
-"src/experimentlab/analysis/engine.py" = ["E501"]
+"tests/*" = ["S101", "S311", "S603", "S607", "S608"]
+"scripts/*" = ["T201"]
+"src/experimentlab/check_report.py" = ["T201"]
+"src/experimentlab/db/checks.py" = ["S608"]  # имена таблиц берутся из константы TABLES
+"src/experimentlab/analysis/report.py" = ["N806"]
+"src/experimentlab/analysis/advanced_report.py" = ["N806"]
+# Границы приложения: любая ошибка превращается в сообщение (с логированием)
+"src/experimentlab/app/services.py" = ["BLE001"]
+"src/experimentlab/app/components.py" = ["BLE001"]
+"src/experimentlab/db/loader.py" = ["BLE001"]

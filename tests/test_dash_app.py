@@ -85,9 +85,9 @@ def test_size_check_blocks_tiny_subsets(adv_df):
             ("age_group", ("55+",)),
         ),
     )
-    with pytest.raises(services.AnalysisUnavailable):
+    with pytest.raises(services.AnalysisUnavailableError):
         services._check_size(tiny, 1000)
-    with pytest.raises(services.AnalysisUnavailable):
+    with pytest.raises(services.AnalysisUnavailableError):
         services._check_size(adv_df.iloc[0:0], 1000)
 
 

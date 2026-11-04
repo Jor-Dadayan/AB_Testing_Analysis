@@ -1,0 +1,15 @@
+    def test_filters_select_rows_and_drop_unused_categories(adv_df):
+        key = (("device_type", ("mobile",)), ("is_new_user", ("1",)))
+        out = services.apply_filters(adv_df, key)
+        assert (out["device_type"] == "mobile").all() and (out["is_new_user"] == 1).all()
+        assert 0 < len(out) < len(adv_df)
+        assert services.apply_filters(adv_df, (("country", ()),)).empty
+>       assert "device_type: " in services.summarize_filters(key)
+E       AssertionError: assert 'device_type: ' in 'Устройство: mobile; Тип пользователя: Новые'
+E        +  where 'Устройство: mobile; Тип пользователя: Новые' = <function summarize_filters at 0x71d02d3ab380>((('device_type', ('mobile',)), ('is_new_user', ('1',))))
+E        +    where <function summarize_filters at 0x71d02d3ab380> = services.summarize_filters
+
+tests/test_dash_app.py:75: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_dash_app.py::test_filters_select_rows_and_drop_unused_categories
+1 failed, 155 passed in 113.92s (0:01:53)

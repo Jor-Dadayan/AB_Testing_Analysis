@@ -149,6 +149,10 @@ def srm_check(
     alpha: float = 0.001,
 ) -> SRMResult:
     """Sample Ratio Mismatch: хи-квадрат сравнивает фактические размеры групп с планом."""
+    if not 0 < expected_treatment_share < 1:
+        raise ValueError("expected_treatment_share должна быть строго между 0 и 1")
+    if n_control < 0 or n_treatment < 0 or n_control + n_treatment == 0:
+        raise ValueError("размеры групп неотрицательны, их сумма должна быть больше 0")
     n = n_control + n_treatment
     exp_t = n * expected_treatment_share
     exp_c = n - exp_t

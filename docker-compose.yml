@@ -1,15 +1,79 @@
+name: experimentlab
+
+x-app-env: &app-env
+  POSTGRES_HOST: db            # внутри сети Docker база доступна по имени сервиса
+  POSTGRES_PORT: "5432"
+  POSTGRES_USER: ${POSTGRES_USER:-lab}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Укажите POSTGRES_PASSWORD в файле .env}
+  POSTGRES_DB: ${POSTGRES_DB:-experimentlab}
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+
 services:
   db:
-    image: postgres:16
-    container_name: experimentlab_db
-    env_file: .env
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-lab}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Укажите POSTGRES_PASSWORD в файле .env}
+      POSTGRES_DB: ${POSTGRES_DB:-experimentlab}
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"   # только локальный доступ
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
-      retries: 10
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  init:                         # одноразовая подготовка данных
+    build: .
+    image: experimentlab:latest
+    environment: *app-env
+    command: ["sh", "docker/init.sh"]
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - appdata:/app/data
+    restart: "no"
+
+  app:                          # dashboard
+    build: .
+    image: experimentlab:latest
+    environment: *app-env
+    depends_on:
+      db:
+        condition: service_healthy
+      init:
+        condition: service_completed_successfully
+    ports:
+      - "127.0.0.1:8501:8501"
+    volumes:
+      - appdata:/app/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8501/_stcore/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    restart: unless-stopped
+
+  test:                         # docker compose --profile test run --rm test
+    profiles: ["test"]
+    build:
+      context: .
+      args:
+        EXTRAS: "[dev]"
+    image: experimentlab:test
+    environment:
+      <<: *app-env
+      REQUIRE_DB: "1"           # без базы тесты падают, а не пропускаются
+    command: ["pytest", "-ra"]
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
   pgdata:
+  appdata:

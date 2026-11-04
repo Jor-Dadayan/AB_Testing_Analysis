@@ -15,6 +15,7 @@ from experimentlab.analysis import (
     power,
     revenue,
 )
+from experimentlab.analysis.input_checks import validate_analysis_frame
 
 DESCRIBED = ["age", "sessions_prior_30d", "cart_items", "cart_value", "revenue"]
 
@@ -57,6 +58,7 @@ class AnalysisResult:
 
 def run_analysis(df: pd.DataFrame, cfg: dict, source: str = "") -> AnalysisResult:
     """Полный анализ. df: одна строка на пользователя, столбцы group_name, converted, revenue."""
+    validate_analysis_frame(df)
     a = cfg["analysis"]
     alpha, target_power = float(a["alpha"]), float(a["power"])
     thr_conv = float(a["practical_threshold_abs"])

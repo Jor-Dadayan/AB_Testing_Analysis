@@ -3,23 +3,16 @@
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass
 from pathlib import Path
 
 import pandas as pd
 from sqlalchemy import Engine, text
 
+from experimentlab.check_report import Check, print_check_report
 from experimentlab.config import SQL_DIR
 from experimentlab.db.queries import query_file
 
 TABLES = ("users", "user_outcomes", "user_analytics")
-
-
-@dataclass
-class Check:
-    name: str
-    passed: bool
-    detail: str = ""
 
 
 def reconcile(engine: Engine, csv_path: Path | str) -> list[Check]:
@@ -71,11 +64,5 @@ def reconcile(engine: Engine, csv_path: Path | str) -> list[Check]:
 
 
 def print_checks(checks: list[Check]) -> bool:
-    """Печатает отчёт, возвращает True, если всё пройдено."""
-    for c in checks:
-        extra = f"  ({c.detail})" if c.detail else ""
-        print(f"[{'OK  ' if c.passed else 'FAIL'}] {c.name}{extra}")
-    ok = sum(c.passed for c in checks)
-    status = "PASSED" if ok == len(checks) else "FAILED"
-    print(f"\nReconciliation {status}: {ok}/{len(checks)} checks ok")
-    return ok == len(checks)
+    """Печатает отчёт сверки, возвращает True, если всё пройдено."""
+    return print_check_report(checks, "Reconciliation")

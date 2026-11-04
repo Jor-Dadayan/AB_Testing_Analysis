@@ -1,14 +1,24 @@
+# окружение и секреты
 .venv/
+.env
+.env.*
+!.env.example
+
+# Python и инструменты
 __pycache__/
 *.pyc
-.ipynb_checkpoints/
+*.egg-info/
 .pytest_cache/
 .ruff_cache/
-.env
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+
+# сгенерированные данные и логи
 logs/
 data/raw/*.csv
 data/processed/*
 data/simulation/
+data/experiments/
 !data/raw/.gitkeep
 !data/processed/.gitkeep
-data/experiments/
