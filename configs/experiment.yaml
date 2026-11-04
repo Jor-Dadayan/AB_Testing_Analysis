@@ -24,3 +24,24 @@ analysis:
   srm_alpha: 0.001                     # порог проверки соотношения групп
   n_bootstrap: 2000
   bootstrap_seed: 2024
+
+advanced:
+  n_bootstrap_conversion: 10000      # для долей bootstrap дешёвый, можно больше
+  srm_segment_alpha: 0.01            # семейный порог SRM по сегментам (делится по Bonferroni)
+  segment_dimensions: [device_type, country, traffic_source, age_group, is_new_user]
+  segment_min_users: 500             # минимум пользователей в КАЖДОЙ группе сегмента
+  fdr_q: 0.05                        # допустимая доля ложных находок среди находок (BH)
+  winsor_percentiles: [0.99, 0.999]  # потолки чеков для проверки влияния выбросов
+  guardrail_alpha: 0.05              # односторонний уровень для теста "не хуже"
+  balance_smd_warn: 0.10
+  balance_smd_critical: 0.25
+  min_duration_days: 14              # не меньше двух полных недель
+  stability_alpha: 0.05
+  success_criteria:                  # заданы ДО просмотра результатов
+    require_sensitivity_robust: true
+    block_on_confirmed_segment_harm: true
+  guardrails:
+    - {name: arpu, label: "Выручка на пользователя (ARPU)", column: revenue, kind: mean, population: all, direction: higher_is_better, margin_rel: 0.05, required: true}
+    - {name: aov, label: "Средний чек покупателей (AOV)", column: revenue, kind: mean, population: payers, direction: higher_is_better, margin_rel: 0.05, required: true}
+    - {name: refund_rate, label: "Доля возвратов", column: refunded, kind: proportion, population: payers, direction: lower_is_better, margin_abs: 0.02, required: false}
+    - {name: checkout_abandonment, label: "Отказ от оформления заказа", column: checkout_abandoned, kind: proportion, population: all, direction: lower_is_better, margin_abs: 0.02, required: false}
