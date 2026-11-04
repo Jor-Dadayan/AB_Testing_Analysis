@@ -38,3 +38,9 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/experimentlab/analysis/report.py" = ["E501"]
+"src/experimentlab/analysis/interpretation.py" = ["E501"]
+"src/experimentlab/analysis/hypothesis.py" = ["E501"]
+"src/experimentlab/analysis/engine.py" = ["E501"]

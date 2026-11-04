@@ -75,7 +75,7 @@ def generate_users(cfg: dict) -> tuple[pd.DataFrame, dict]:
 
     # --- Время ---
     dates = pd.date_range(cfg["start_date"], periods=n_days)
-    day_w = np.where(dates.dayofweek >= 5, 1.2, 1.0)
+    day_w = np.where(dates.day_of_week >= 5, 1.2, 1.0)
     day_idx = rng.choice(n_days, n, p=day_w / day_w.sum())
     h = np.arange(24)
     hour_w = np.exp(-((h - 20) ** 2) / 50) + np.exp(-((h - 12) ** 2) / 40) + 0.1
@@ -108,7 +108,7 @@ def generate_users(cfg: dict) -> tuple[pd.DataFrame, dict]:
     cart_value = np.clip(np.exp(log_cart), 1.0, None).round(2)
 
     # --- Вероятность покупки (логит) ---
-    is_weekend = (pd.DatetimeIndex(signup_ts).dayofweek >= 5).astype(int)
+    is_weekend = (pd.DatetimeIndex(signup_ts).day_of_week >= 5).astype(int)
     score = (_lookup(device, DEVICE_EFFECT) + _lookup(source, SOURCE_EFFECT)
              + NEW_USER_EFFECT * is_new + 0.06 * np.minimum(sessions, 10)
              - 0.2 * np.log(cart_value / 45.0) + 0.05 * is_weekend
@@ -145,7 +145,7 @@ def generate_users(cfg: dict) -> tuple[pd.DataFrame, dict]:
     df.insert(0, "user_id", np.arange(1, n + 1))
     df["signup_date"] = df["signup_ts"].dt.date
     df["signup_hour"] = df["signup_ts"].dt.hour
-    df["day_of_week"] = df["signup_ts"].dt.dayofweek
+    df["day_of_week"] = df["signup_ts"].dt.day_of_week
     df["is_weekend"] = (df["day_of_week"] >= 5).astype(int)
 
     truth = {

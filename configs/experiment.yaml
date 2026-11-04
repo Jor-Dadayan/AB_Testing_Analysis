@@ -14,3 +14,13 @@ scenarios:
 paths:
   raw_csv: data/raw/users.csv
   truth: data/simulation/truth.json
+
+analysis:
+  alpha: 0.05                          # допустимая вероятность ошибки I рода
+  power: 0.80                          # целевая мощность (1 - вероятность ошибки II рода)
+  planned_mde_abs: 0.01                # на какой прирост конверсии тест СПРОЕКТИРОВАН (+1 п.п.)
+  practical_threshold_abs: 0.005       # минимальный прирост конверсии, который окупает внедрение
+  practical_threshold_arpu_rel: 0.03   # минимальный относительный прирост ARPU (3%)
+  srm_alpha: 0.001                     # порог проверки соотношения групп
+  n_bootstrap: 2000
+  bootstrap_seed: 2024
