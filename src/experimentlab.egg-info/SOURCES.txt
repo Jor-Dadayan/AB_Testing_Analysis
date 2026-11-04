@@ -8,6 +8,7 @@ src/experimentlab.egg-info/dependency_links.txt
 src/experimentlab.egg-info/requires.txt
 src/experimentlab.egg-info/top_level.txt
 src/experimentlab/analysis/__init__.py
+src/experimentlab/analysis/eda.py
 src/experimentlab/app/__init__.py
 src/experimentlab/data/__init__.py
 src/experimentlab/data/generator.py
