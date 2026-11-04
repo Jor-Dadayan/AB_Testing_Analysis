@@ -2,6 +2,7 @@
 
 Скрытая правда используется только здесь и НЕ попадает в отчёты.
 """
+
 import json
 
 from experimentlab.analysis.eda import load_analytics_frame

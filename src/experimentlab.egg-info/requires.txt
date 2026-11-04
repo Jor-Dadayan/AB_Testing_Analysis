@@ -9,7 +9,7 @@ sqlalchemy
 psycopg2-binary
 pyyaml
 python-dotenv
-streamlit
+streamlit>=1.40
 
 [dev]
 pytest

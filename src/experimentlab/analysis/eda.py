@@ -1,4 +1,5 @@
 """Вспомогательные функции для EDA. Здесь нет текста SQL и нет интерфейса."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -106,10 +107,14 @@ def balance_table(
         a, b = ctrl[col].astype(float), treat[col].astype(float)
         pooled = np.sqrt((a.var() + b.var()) / 2)
         smd = (b.mean() - a.mean()) / pooled if pooled > 0 else 0.0
-        rows.append({
-            "variable": col, "kind": "numeric", "smd": smd,
-            "p_value": stats.mannwhitneyu(a, b).pvalue,
-        })
+        rows.append(
+            {
+                "variable": col,
+                "kind": "numeric",
+                "smd": smd,
+                "p_value": stats.mannwhitneyu(a, b).pvalue,
+            }
+        )
     for col in categorical:
         table = pd.crosstab(df[group_col], df[col])
         shares = table.div(table.sum(axis=1), axis=0)
@@ -118,10 +123,14 @@ def balance_table(
             pc, pt = shares.loc["control", level], shares.loc["treatment", level]
             pooled = np.sqrt((pc * (1 - pc) + pt * (1 - pt)) / 2)
             smds.append((pt - pc) / pooled if pooled > 0 else 0.0)
-        rows.append({
-            "variable": col, "kind": "categorical", "smd": max(smds, key=abs),
-            "p_value": stats.chi2_contingency(table)[1],
-        })
+        rows.append(
+            {
+                "variable": col,
+                "kind": "categorical",
+                "smd": max(smds, key=abs),
+                "p_value": stats.chi2_contingency(table)[1],
+            }
+        )
     out = pd.DataFrame(rows)
     out["abs_smd"] = out["smd"].abs()
     out["balanced"] = out["abs_smd"] < 0.1
@@ -136,3 +145,8 @@ def conversion_ci(df: pd.DataFrame, by: str | list[str]) -> pd.DataFrame:
     agg["ci_low"] = low
     agg["ci_high"] = high
     return agg
+
+
+def load_csv_frame(path) -> pd.DataFrame:
+    """Читает CSV датасета и приводит к виду user_analytics (dashboard и демо-эксперименты)."""
+    return _finalize(_derive_from_csv(pd.read_csv(path)))

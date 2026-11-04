@@ -29,9 +29,14 @@ def test_unequal_planned_split():
 
 
 def test_segment_srm_flags_only_broken_segment():
-    df = pd.DataFrame({
-        "group_name": ["control"] * 5000 + ["treatment"] * 5000 + ["control"] * 6000 + ["treatment"] * 4000,
-        "device": ["a"] * 10_000 + ["b"] * 10_000,
-    })
+    df = pd.DataFrame(
+        {
+            "group_name": ["control"] * 5000
+            + ["treatment"] * 5000
+            + ["control"] * 6000
+            + ["treatment"] * 4000,
+            "device": ["a"] * 10_000 + ["b"] * 10_000,
+        }
+    )
     out = srm_by_segment(df, ["device"]).set_index("level")
     assert not out.loc["a", "flagged"] and out.loc["b", "flagged"]

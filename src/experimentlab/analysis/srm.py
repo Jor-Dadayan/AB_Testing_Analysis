@@ -1,4 +1,5 @@
 """Расширенная проверка SRM: отчёт с предупреждением и проверка по сегментам и дням."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -45,12 +46,18 @@ def srm_report(
             "загрузки версий."
         )
     return SRMReport(
-        n_control=int(n_control), n_treatment=int(n_treatment),
-        expected_control=n - exp_t, expected_treatment=exp_t,
+        n_control=int(n_control),
+        n_treatment=int(n_treatment),
+        expected_control=n - exp_t,
+        expected_treatment=exp_t,
         expected_treatment_share=expected_treatment_share,
         observed_treatment_share=n_treatment / n,
-        chi2=base.chi2, df=1, p_value=base.p_value, alpha=alpha,
-        passed=base.passed, warning=warning,
+        chi2=base.chi2,
+        df=1,
+        p_value=base.p_value,
+        alpha=alpha,
+        passed=base.passed,
+        warning=warning,
     )
 
 
@@ -62,8 +69,17 @@ def srm_by_segment(
     group_col: str = "group_name",
 ) -> pd.DataFrame:
     """SRM внутри каждого уровня каждого признака. Порог делится на число проверок (Bonferroni)."""
-    cols = ["dimension", "level", "n_control", "n_treatment", "share_treatment",
-            "chi2", "p_value", "alpha_adj", "flagged"]
+    cols = [
+        "dimension",
+        "level",
+        "n_control",
+        "n_treatment",
+        "share_treatment",
+        "chi2",
+        "p_value",
+        "alpha_adj",
+        "flagged",
+    ]
     rows = []
     for col in columns:
         counts = pd.crosstab(df[col].astype(str), df[group_col].astype(str))
@@ -75,9 +91,17 @@ def srm_by_segment(
                 continue
             res = srm_check(n_c, n_t, expected_treatment_share, family_alpha)
             label = str(level)[:10] if col.endswith("date") else str(level)
-            rows.append({"dimension": col, "level": label, "n_control": n_c,
-                         "n_treatment": n_t, "share_treatment": n_t / n,
-                         "chi2": res.chi2, "p_value": res.p_value})
+            rows.append(
+                {
+                    "dimension": col,
+                    "level": label,
+                    "n_control": n_c,
+                    "n_treatment": n_t,
+                    "share_treatment": n_t / n,
+                    "chi2": res.chi2,
+                    "p_value": res.p_value,
+                }
+            )
     out = pd.DataFrame(rows, columns=cols)
     if len(out):
         out["alpha_adj"] = family_alpha / len(out)

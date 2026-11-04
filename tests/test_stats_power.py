@@ -22,7 +22,8 @@ def test_sample_size_textbook_value():
 def test_sample_size_close_to_statsmodels():
     n = sample_size_two_proportions(0.10, 0.11, 0.05, 0.80)
     ref = NormalIndPower().solve_power(
-        effect_size=proportion_effectsize(0.11, 0.10), alpha=0.05, power=0.80, ratio=1.0)
+        effect_size=proportion_effectsize(0.11, 0.10), alpha=0.05, power=0.80, ratio=1.0
+    )
     assert abs(n - ref) / ref < 0.01
 
 
@@ -84,6 +85,10 @@ def test_predicted_power_matches_simulation():
     rng = np.random.default_rng(3)
     n, sims = 5000, 3000
     xc, xt = rng.binomial(n, 0.10, sims), rng.binomial(n, 0.11, sims)
-    empirical = np.mean([two_proportion_ztest(int(a), n, int(b), n).p_value < 0.05
-                         for a, b in zip(xc, xt, strict=True)])
+    empirical = np.mean(
+        [
+            two_proportion_ztest(int(a), n, int(b), n).p_value < 0.05
+            for a, b in zip(xc, xt, strict=True)
+        ]
+    )
     assert empirical == pytest.approx(power_two_proportions(0.10, 0.11, n), abs=0.04)

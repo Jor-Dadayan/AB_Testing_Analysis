@@ -1,4 +1,5 @@
 """Интеграционные тесты: работают в отдельной схеме PostgreSQL, пропускаются без базы."""
+
 import uuid
 
 import pandas as pd
@@ -71,6 +72,9 @@ def test_invalid_data_is_rejected_and_logged(engine, csv_path):
 def test_database_constraint_blocks_bad_row(engine, csv_path):
     load_csv(csv_path, engine)
     with pytest.raises(IntegrityError), engine.begin() as conn:
-        conn.execute(text(
-            "UPDATE user_outcomes SET revenue = 5 WHERE user_id = "
-            "(SELECT MIN(user_id) FROM user_outcomes WHERE NOT converted)"))
+        conn.execute(
+            text(
+                "UPDATE user_outcomes SET revenue = 5 WHERE user_id = "
+                "(SELECT MIN(user_id) FROM user_outcomes WHERE NOT converted)"
+            )
+        )

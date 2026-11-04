@@ -1,4 +1,5 @@
 """Описательная статистика по группам. Только вычисления: без графиков, SQL и интерфейса."""
+
 from __future__ import annotations
 
 import numpy as np

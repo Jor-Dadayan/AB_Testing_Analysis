@@ -45,3 +45,14 @@ advanced:
     - {name: aov, label: "Средний чек покупателей (AOV)", column: revenue, kind: mean, population: payers, direction: higher_is_better, margin_rel: 0.05, required: true}
     - {name: refund_rate, label: "Доля возвратов", column: refunded, kind: proportion, population: payers, direction: lower_is_better, margin_abs: 0.02, required: false}
     - {name: checkout_abandonment, label: "Отказ от оформления заказа", column: checkout_abandoned, kind: proportion, population: all, direction: lower_is_better, margin_abs: 0.02, required: false}
+
+dashboard:
+  min_group_users: 1000              # меньше пользователей в группе подвыборки: анализ не запускается
+  filtered_n_bootstrap: 500          # облегчённый bootstrap для интерактивных подвыборок
+  filtered_n_bootstrap_conversion: 5000
+
+experiments:
+  - {id: primary, label: "Checkout v2: основной эксперимент", source: primary}
+  - {id: demo_1, label: "Демо-эксперимент 1", source: csv, path: data/experiments/demo_1.csv}
+  - {id: demo_2, label: "Демо-эксперимент 2", source: csv, path: data/experiments/demo_2.csv}
+  - {id: demo_3, label: "Демо-эксперимент 3", source: csv, path: data/experiments/demo_3.csv}

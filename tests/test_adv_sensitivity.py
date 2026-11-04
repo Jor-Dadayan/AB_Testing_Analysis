@@ -47,8 +47,9 @@ def test_outlier_changes_raw_estimate_but_not_winsorized():
 
     rt = draw()
     rt[0] = 100_000.0
-    df = pd.DataFrame({"group_name": ["control"] * n + ["treatment"] * n,
-                       "revenue": np.concatenate([draw(), rt])})
+    df = pd.DataFrame(
+        {"group_name": ["control"] * n + ["treatment"] * n, "revenue": np.concatenate([draw(), rt])}
+    )
     est = {e.method: e for e in revenue_estimates(df, 0.05, 200, 1, [0.99])}
     raw = est["Тест Уэлча (вторичный)"].estimate
     win = next(e for k, e in est.items() if "винзоризации" in k).estimate

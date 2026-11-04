@@ -8,17 +8,35 @@ def build(levels: dict) -> pd.DataFrame:
     """levels: уровень -> (n_c, x_c, n_t, x_t); данные детерминированы, без случайности."""
     parts = []
     for lvl, (nc, xc, nt, xt) in levels.items():
-        parts.append(pd.DataFrame({"group_name": "control", "device_type": lvl,
-                                   "converted": [1] * xc + [0] * (nc - xc)}))
-        parts.append(pd.DataFrame({"group_name": "treatment", "device_type": lvl,
-                                   "converted": [1] * xt + [0] * (nt - xt)}))
+        parts.append(
+            pd.DataFrame(
+                {
+                    "group_name": "control",
+                    "device_type": lvl,
+                    "converted": [1] * xc + [0] * (nc - xc),
+                }
+            )
+        )
+        parts.append(
+            pd.DataFrame(
+                {
+                    "group_name": "treatment",
+                    "device_type": lvl,
+                    "converted": [1] * xt + [0] * (nt - xt),
+                }
+            )
+        )
     return pd.concat(parts, ignore_index=True)
 
 
 def test_effect_in_one_segment_survives_correction_and_omnibus_detects_it():
-    df = build({"mobile": (20_000, 2000, 20_000, 3000),
-                "desktop": (20_000, 2000, 20_000, 2000),
-                "tablet": (20_000, 2000, 20_000, 2000)})
+    df = build(
+        {
+            "mobile": (20_000, 2000, 20_000, 3000),
+            "desktop": (20_000, 2000, 20_000, 2000),
+            "tablet": (20_000, 2000, 20_000, 2000),
+        }
+    )
     res = analyze_segments(df, ["device_type"])
     t = res.table.set_index("level")
     assert res.n_tests == 3
@@ -35,16 +53,22 @@ def test_identical_segments_have_no_findings():
 
 
 def test_small_segments_are_skipped_not_tested():
-    df = build({"big": (10_000, 1000, 10_000, 1000), "big2": (10_000, 1000, 10_000, 1000),
-                "tiny": (100, 10, 100, 12)})
+    df = build(
+        {
+            "big": (10_000, 1000, 10_000, 1000),
+            "big2": (10_000, 1000, 10_000, 1000),
+            "tiny": (100, 10, 100, 12),
+        }
+    )
     res = analyze_segments(df, ["device_type"], min_users=500)
     assert res.n_tests == 2 and res.skipped[0]["level"] == "tiny"
 
 
 def test_harmful_segment_is_reported():
     df = build({"mobile": (20_000, 2000, 20_000, 2000), "desktop": (20_000, 3000, 20_000, 2000)})
-    assert significant_levels(analyze_segments(df, ["device_type"]).table, "holm", "negative") \
-        == ["device_type: desktop"]
+    assert significant_levels(analyze_segments(df, ["device_type"]).table, "holm", "negative") == [
+        "device_type: desktop"
+    ]
 
 
 def test_raw_significant_but_not_after_multiplicity_correction():
@@ -52,6 +76,10 @@ def test_raw_significant_but_not_after_multiplicity_correction():
     levels["target"] = (5000, 500, 5000, 575)  # +1.5 п.п., сырой p около 0.015
     t = analyze_segments(build(levels), ["device_type"]).table.set_index("level")
     assert t.loc["target", "sig_raw"]
-    assert not (t.loc["target", "sig_bonferroni"] or t.loc["target", "sig_holm"] or t.loc["target", "sig_bh"])
+    assert not (
+        t.loc["target", "sig_bonferroni"]
+        or t.loc["target", "sig_holm"]
+        or t.loc["target", "sig_bh"]
+    )
     assert t.loc["target", "p_value"] == pytest.approx(0.0155, abs=0.002)
     assert t.loc["target", "p_bonferroni"] == pytest.approx(10 * t.loc["target", "p_value"])

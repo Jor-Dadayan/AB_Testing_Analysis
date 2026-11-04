@@ -1,4 +1,5 @@
 """Генерация датасета: python scripts/generate_data.py [--scenario ...] [--force]."""
+
 import argparse
 import logging
 import sys

@@ -1,4 +1,5 @@
 """Bootstrap: разница конверсий, relative lift, ARPU и произвольная статистика."""
+
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -23,8 +24,13 @@ def _binomial_draws(x_c, n_c, x_t, n_t, n_boot, seed):
 
 
 def bootstrap_conversion_diff(
-    x_control: int, n_control: int, x_treatment: int, n_treatment: int,
-    n_boot: int = 10_000, alpha: float = 0.05, seed: int = 0,
+    x_control: int,
+    n_control: int,
+    x_treatment: int,
+    n_treatment: int,
+    n_boot: int = 10_000,
+    alpha: float = 0.05,
+    seed: int = 0,
 ) -> BootstrapResult:
     """Bootstrap-интервал для разницы конверсий (treatment - control)."""
     p_c, p_t = _binomial_draws(x_control, n_control, x_treatment, n_treatment, n_boot, seed)
@@ -34,8 +40,13 @@ def bootstrap_conversion_diff(
 
 
 def bootstrap_conversion_relative_lift(
-    x_control: int, n_control: int, x_treatment: int, n_treatment: int,
-    n_boot: int = 10_000, alpha: float = 0.05, seed: int = 0,
+    x_control: int,
+    n_control: int,
+    x_treatment: int,
+    n_treatment: int,
+    n_boot: int = 10_000,
+    alpha: float = 0.05,
+    seed: int = 0,
 ) -> BootstrapResult:
     """Bootstrap-интервал для relative lift = p_T / p_C - 1 (поле diff содержит lift)."""
     if x_control == 0:
@@ -76,7 +87,7 @@ def bootstrap_statistic_diff(
         k = min(chunk, n_boot - done)
         s_c = stat(c[rng.integers(0, c.size, size=(k, c.size))])
         s_t = stat(t[rng.integers(0, t.size, size=(k, t.size))])
-        diffs[done:done + k] = s_t - s_c
+        diffs[done : done + k] = s_t - s_c
         done += k
     lo, hi = np.quantile(diffs, [alpha / 2, 1 - alpha / 2])
     point = float(stat(t[None, :])[0] - stat(c[None, :])[0])

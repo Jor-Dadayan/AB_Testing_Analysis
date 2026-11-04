@@ -1,4 +1,5 @@
 """Анализ конверсии: z-тест двух долей, доверительные интервалы, проверка SRM."""
+
 from __future__ import annotations
 
 import math
@@ -117,15 +118,27 @@ def two_proportion_ztest(
         rel = rel_lo = rel_hi = float("nan")
 
     return ProportionTestResult(
-        x_control=int(x_control), n_control=int(n_control),
-        x_treatment=int(x_treatment), n_treatment=int(n_treatment),
-        p_control=p_c, p_treatment=p_t, diff=diff, rel_lift=rel,
-        se_pooled=se_pooled, se_unpooled=se_unpooled, z=z,
-        p_value=p_value_from_z(z, alternative), alternative=alternative, alpha=alpha,
-        ci_low=diff - z_crit * se_unpooled, ci_high=diff + z_crit * se_unpooled,
-        rel_lift_ci_low=rel_lo, rel_lift_ci_high=rel_hi,
+        x_control=int(x_control),
+        n_control=int(n_control),
+        x_treatment=int(x_treatment),
+        n_treatment=int(n_treatment),
+        p_control=p_c,
+        p_treatment=p_t,
+        diff=diff,
+        rel_lift=rel,
+        se_pooled=se_pooled,
+        se_unpooled=se_unpooled,
+        z=z,
+        p_value=p_value_from_z(z, alternative),
+        alternative=alternative,
+        alpha=alpha,
+        ci_low=diff - z_crit * se_unpooled,
+        ci_high=diff + z_crit * se_unpooled,
+        rel_lift_ci_low=rel_lo,
+        rel_lift_ci_high=rel_hi,
         assumption_issues=proportion_assumption_issues(
-            x_control, n_control, x_treatment, n_treatment),
+            x_control, n_control, x_treatment, n_treatment
+        ),
     )
 
 
@@ -141,5 +154,6 @@ def srm_check(
     exp_c = n - exp_t
     chi2 = (n_control - exp_c) ** 2 / exp_c + (n_treatment - exp_t) ** 2 / exp_t
     p = float(stats.chi2.sf(chi2, df=1))
-    return SRMResult(n_control, n_treatment, expected_treatment_share,
-                     float(chi2), p, alpha, bool(p >= alpha))
+    return SRMResult(
+        n_control, n_treatment, expected_treatment_share, float(chi2), p, alpha, bool(p >= alpha)
+    )

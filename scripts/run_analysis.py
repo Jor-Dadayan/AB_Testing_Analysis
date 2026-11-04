@@ -1,4 +1,5 @@
 """Статистический анализ: python scripts/run_analysis.py -> Markdown-отчёт и JSON."""
+
 import argparse
 import json
 import logging
@@ -25,15 +26,17 @@ def main() -> int:
     Path(args.report).parent.mkdir(parents=True, exist_ok=True)
     Path(args.report).write_text(render_report(result), encoding="utf-8")
     Path(args.json).write_text(
-        json.dumps(result.to_dict(), ensure_ascii=False, indent=2, default=str),
-        encoding="utf-8")
+        json.dumps(result.to_dict(), ensure_ascii=False, indent=2, default=str), encoding="utf-8"
+    )
 
     c, w = result.conversion, result.arpu_welch
     print(f"Источник: {source}")
     print(f"SRM: {'пройдена' if result.srm.passed else 'НЕ ПРОЙДЕНА'} (p={result.srm.p_value:.4f})")
-    print(f"Конверсия: control {c.p_control:.2%}, treatment {c.p_treatment:.2%}, "
-          f"разница {c.diff * 100:+.2f} п.п. "
-          f"[{c.ci_low * 100:+.2f}; {c.ci_high * 100:+.2f}], z={c.z:.2f}, p={c.p_value:.2e}")
+    print(
+        f"Конверсия: control {c.p_control:.2%}, treatment {c.p_treatment:.2%}, "
+        f"разница {c.diff * 100:+.2f} п.п. "
+        f"[{c.ci_low * 100:+.2f}; {c.ci_high * 100:+.2f}], z={c.z:.2f}, p={c.p_value:.2e}"
+    )
     print(f"ARPU: разница {w.diff:+.4f} [{w.ci_low:+.4f}; {w.ci_high:+.4f}], p={w.p_value:.4f}")
     print(f"Решение: {result.recommendation}")
     print(f"\nОтчёт: {args.report}\nJSON:  {args.json}")

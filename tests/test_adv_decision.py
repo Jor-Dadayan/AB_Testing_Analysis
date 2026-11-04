@@ -13,15 +13,39 @@ OK_Q = [Finding("balance", "ok", "ok")]
 
 
 def gr(status, required=True, name="g"):
-    return GuardrailResult(name, name, status, required, "higher_is_better", "mean", 1, 1,
-                           NAN, NAN, NAN, NAN, NAN, NAN, 0.05, status)
+    return GuardrailResult(
+        name,
+        name,
+        status,
+        required,
+        "higher_is_better",
+        "mean",
+        1,
+        1,
+        NAN,
+        NAN,
+        NAN,
+        NAN,
+        NAN,
+        NAN,
+        0.05,
+        status,
+    )
 
 
-def run(conv=GOOD, guards=None, robust=True, holm=(), bh=(), srm=True, quality=OK_Q, sufficient=True):
-    return decide(srm_passed=srm, quality_findings=quality, conversion=conv,
-                  guardrails=guards if guards is not None else [gr("PASS")],
-                  conversion_robust=robust, segment_harm_holm=list(holm), segment_harm_bh=list(bh),
-                  data_sufficient=sufficient)
+def run(
+    conv=GOOD, guards=None, robust=True, holm=(), bh=(), srm=True, quality=OK_Q, sufficient=True
+):
+    return decide(
+        srm_passed=srm,
+        quality_findings=quality,
+        conversion=conv,
+        guardrails=guards if guards is not None else [gr("PASS")],
+        conversion_robust=robust,
+        segment_harm_holm=list(holm),
+        segment_harm_bh=list(bh),
+        data_sufficient=sufficient,
+    )
 
 
 def test_all_criteria_met_ships():

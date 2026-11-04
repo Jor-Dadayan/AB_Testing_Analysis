@@ -26,8 +26,9 @@ def test_empty_sample_raises():
 
 
 def test_describe_by_group_shape():
-    df = pd.DataFrame({"group_name": ["control"] * 3 + ["treatment"] * 3,
-                       "x": [1, 2, 3, 10, 20, 30]})
+    df = pd.DataFrame(
+        {"group_name": ["control"] * 3 + ["treatment"] * 3, "x": [1, 2, 3, 10, 20, 30]}
+    )
     out = describe_by_group(df, ["x"])
     assert out.loc[("x", "control"), "mean"] == 2
     assert out.loc[("x", "treatment"), "mean"] == 20

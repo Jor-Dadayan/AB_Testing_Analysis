@@ -79,8 +79,12 @@ def test_type_one_error_close_to_alpha():
     rng = np.random.default_rng(1)
     n, sims = 5000, 3000
     xc, xt = rng.binomial(n, 0.10, sims), rng.binomial(n, 0.10, sims)
-    rejected = np.mean([two_proportion_ztest(int(a), n, int(b), n).p_value < 0.05
-                        for a, b in zip(xc, xt, strict=True)])
+    rejected = np.mean(
+        [
+            two_proportion_ztest(int(a), n, int(b), n).p_value < 0.05
+            for a, b in zip(xc, xt, strict=True)
+        ]
+    )
     assert 0.035 < rejected < 0.065
 
 

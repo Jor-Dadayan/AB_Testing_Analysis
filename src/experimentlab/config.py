@@ -1,4 +1,5 @@
 """Конфигурация проекта: YAML-эксперимент и подключение к БД."""
+
 import os
 from pathlib import Path
 

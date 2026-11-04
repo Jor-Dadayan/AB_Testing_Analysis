@@ -1,4 +1,5 @@
 """Запуск аналитических запросов: python scripts/run_queries.py [имя_запроса]."""
+
 import argparse
 
 from experimentlab.db.connection import get_engine

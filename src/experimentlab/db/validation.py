@@ -1,17 +1,35 @@
 """Проверка CSV перед загрузкой: дубликаты, NULL, типы, значения, логика."""
+
 from __future__ import annotations
 
 import pandas as pd
 
 DB_COLUMNS = [
-    "user_id", "group", "signup_ts", "device_type", "country", "traffic_source",
-    "is_new_user", "age", "sessions_prior_30d", "cart_items", "cart_value",
-    "converted", "revenue", "purchase_ts",
+    "user_id",
+    "group",
+    "signup_ts",
+    "device_type",
+    "country",
+    "traffic_source",
+    "is_new_user",
+    "age",
+    "sessions_prior_30d",
+    "cart_items",
+    "cart_value",
+    "converted",
+    "revenue",
+    "purchase_ts",
 ]
 NOT_NULL_COLUMNS = [c for c in DB_COLUMNS if c != "purchase_ts"]
 NUMERIC_COLUMNS = [
-    "user_id", "is_new_user", "age", "sessions_prior_30d", "cart_items",
-    "cart_value", "converted", "revenue",
+    "user_id",
+    "is_new_user",
+    "age",
+    "sessions_prior_30d",
+    "cart_items",
+    "cart_value",
+    "converted",
+    "revenue",
 ]
 ALLOWED_VALUES = {
     "group": {"control", "treatment"},

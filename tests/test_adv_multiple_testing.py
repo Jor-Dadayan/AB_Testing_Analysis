@@ -11,15 +11,23 @@ from experimentlab.analysis.multiple_testing import (
 )
 
 
-@pytest.mark.parametrize("ours,method", [
-    (bonferroni_adjust, "bonferroni"), (holm_adjust, "holm"), (benjamini_hochberg_adjust, "fdr_bh")])
+@pytest.mark.parametrize(
+    "ours,method",
+    [
+        (bonferroni_adjust, "bonferroni"),
+        (holm_adjust, "holm"),
+        (benjamini_hochberg_adjust, "fdr_bh"),
+    ],
+)
 def test_matches_statsmodels(ours, method):
     p = np.random.default_rng(0).uniform(0, 0.2, 15)
     assert ours(p) == pytest.approx(multipletests(p, method=method)[1])
 
 
 def test_bh_known_values():
-    assert benjamini_hochberg_adjust([0.01, 0.04, 0.03, 0.005]) == pytest.approx([0.02, 0.04, 0.04, 0.02])
+    assert benjamini_hochberg_adjust([0.01, 0.04, 0.03, 0.005]) == pytest.approx(
+        [0.02, 0.04, 0.04, 0.02]
+    )
 
 
 def test_bonferroni_caps_at_one():
@@ -42,7 +50,7 @@ def test_global_null_simulation():
     raw = (p < 0.05).any(axis=1).mean()
     bonf = np.mean([(bonferroni_adjust(r) < 0.05).any() for r in p])
     bh = np.mean([(benjamini_hochberg_adjust(r) < 0.05).any() for r in p])
-    assert 0.58 < raw < 0.70       # без поправки ложная находка почти у каждого второго
+    assert 0.58 < raw < 0.70  # без поправки ложная находка почти у каждого второго
     assert 0.03 < bonf < 0.07
     assert 0.03 < bh < 0.07
 

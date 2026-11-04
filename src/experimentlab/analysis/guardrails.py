@@ -1,4 +1,5 @@
 """Guardrail-метрики: тест «не хуже допустимого предела» (non-inferiority)."""
+
 from __future__ import annotations
 
 import math
@@ -43,10 +44,23 @@ def noninferiority(effect: float, se: float, dof: float, margin: float, alpha: f
 
 def _not_evaluated(spec: dict, detail: str) -> GuardrailResult:
     return GuardrailResult(
-        name=spec["name"], label=spec.get("label", spec["name"]), status="NOT_EVALUATED",
-        required=bool(spec.get("required", False)), direction=spec["direction"], kind=spec["kind"],
-        n_control=0, n_treatment=0, mean_control=NAN, mean_treatment=NAN, diff=NAN,
-        margin_abs=NAN, bound=NAN, limit=NAN, alpha=NAN, detail=detail)
+        name=spec["name"],
+        label=spec.get("label", spec["name"]),
+        status="NOT_EVALUATED",
+        required=bool(spec.get("required", False)),
+        direction=spec["direction"],
+        kind=spec["kind"],
+        n_control=0,
+        n_treatment=0,
+        mean_control=NAN,
+        mean_treatment=NAN,
+        diff=NAN,
+        margin_abs=NAN,
+        bound=NAN,
+        limit=NAN,
+        alpha=NAN,
+        detail=detail,
+    )
 
 
 def evaluate_guardrail(
@@ -69,31 +83,49 @@ def evaluate_guardrail(
     diff = float(t.mean() - c.mean())
     a, b = c.var(ddof=1) / c.size, t.var(ddof=1) / t.size
     se = math.sqrt(a + b)
-    margin = float(spec["margin_abs"]) if "margin_abs" in spec else \
-        float(spec["margin_rel"]) * abs(float(c.mean()))
+    margin = (
+        float(spec["margin_abs"])
+        if "margin_abs" in spec
+        else float(spec["margin_rel"]) * abs(float(c.mean()))
+    )
     if margin <= 0:
         raise ValueError(f"{spec['name']}: допустимый предел должен быть больше 0")
     sign = 1.0 if spec["direction"] == "higher_is_better" else -1.0
     base = dict(
-        name=spec["name"], label=spec.get("label", spec["name"]),
-        required=bool(spec.get("required", False)), direction=spec["direction"],
-        kind=spec["kind"], n_control=int(c.size), n_treatment=int(t.size),
-        mean_control=float(c.mean()), mean_treatment=float(t.mean()), diff=diff,
-        margin_abs=margin, limit=-sign * margin, alpha=alpha)
+        name=spec["name"],
+        label=spec.get("label", spec["name"]),
+        required=bool(spec.get("required", False)),
+        direction=spec["direction"],
+        kind=spec["kind"],
+        n_control=int(c.size),
+        n_treatment=int(t.size),
+        mean_control=float(c.mean()),
+        mean_treatment=float(t.mean()),
+        diff=diff,
+        margin_abs=margin,
+        limit=-sign * margin,
+        alpha=alpha,
+    )
     if se == 0:
-        return GuardrailResult(status="INCONCLUSIVE", bound=NAN,
-                               detail="нулевая дисперсия: оценить нельзя", **base)
-    dof = (a + b) ** 2 / (a**2 / (c.size - 1) + b**2 / (t.size - 1)) \
-        if spec["kind"] == "mean" else float("inf")
+        return GuardrailResult(
+            status="INCONCLUSIVE", bound=NAN, detail="нулевая дисперсия: оценить нельзя", **base
+        )
+    dof = (
+        (a + b) ** 2 / (a**2 / (c.size - 1) + b**2 / (t.size - 1))
+        if spec["kind"] == "mean"
+        else float("inf")
+    )
     status, low, _ = noninferiority(sign * diff, se, dof, margin, alpha)
     verdict = {
         "PASS": "ухудшение сверх допустимого предела исключено",
         "FAIL": "ухудшение сверх допустимого предела подтверждено",
         "INCONCLUSIVE": "данные не исключают ухудшения сверх предела "
-                        "(это не доказательство ни вреда, ни безопасности)",
+        "(это не доказательство ни вреда, ни безопасности)",
     }[status]
     return GuardrailResult(status=status, bound=float(sign * low), detail=verdict, **base)
 
 
-def evaluate_guardrails(df: pd.DataFrame, specs: list[dict], alpha: float = 0.05) -> list[GuardrailResult]:
+def evaluate_guardrails(
+    df: pd.DataFrame, specs: list[dict], alpha: float = 0.05
+) -> list[GuardrailResult]:
     return [evaluate_guardrail(df, s, alpha) for s in specs]

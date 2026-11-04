@@ -11,3 +11,4 @@ data/processed/*
 data/simulation/
 !data/raw/.gitkeep
 !data/processed/.gitkeep
+data/experiments/

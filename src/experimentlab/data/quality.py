@@ -1,4 +1,5 @@
 """Проверки качества сгенерированного датасета."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -55,10 +56,11 @@ def run_quality_checks(df: pd.DataFrame, cfg: dict) -> list[Check]:
     end = start + pd.Timedelta(days=cfg["n_days"])
     add("даты регистрации в периоде теста", d["signup_ts"].between(start, end).all())
     buyers = d["converted"] == 1
-    add("purchase_ts заполнен только у купивших",
-        (d["purchase_ts"].notna() == buyers).all())
-    add("покупка не раньше регистрации",
-        (d.loc[buyers, "purchase_ts"] >= d.loc[buyers, "signup_ts"]).all())
+    add("purchase_ts заполнен только у купивших", (d["purchase_ts"].notna() == buyers).all())
+    add(
+        "покупка не раньше регистрации",
+        (d.loc[buyers, "purchase_ts"] >= d.loc[buyers, "signup_ts"]).all(),
+    )
 
     # Выручка
     add("выручка неотрицательна", (d["revenue"] >= 0).all())
@@ -67,10 +69,16 @@ def run_quality_checks(df: pd.DataFrame, cfg: dict) -> list[Check]:
     add("доля нулевой выручки не менее 70%", zero_share >= 0.70, f"{zero_share:.1%}")
     pay = d.loc[buyers, "revenue"]
     skew = stats.skew(pay)
-    add("выручка покупателей скошена вправо (mean > median)",
-        pay.mean() > pay.median() and skew > 0.5, f"skew={skew:.2f}")
-    add("конверсия в разумных пределах 3-30%", 0.03 <= d["converted"].mean() <= 0.30,
-        f"{d['converted'].mean():.2%}")
+    add(
+        "выручка покупателей скошена вправо (mean > median)",
+        pay.mean() > pay.median() and skew > 0.5,
+        f"skew={skew:.2f}",
+    )
+    add(
+        "конверсия в разумных пределах 3-30%",
+        0.03 <= d["converted"].mean() <= 0.30,
+        f"{d['converted'].mean():.2%}",
+    )
 
     # Логичные корреляции
     cv = d.groupby("device_type")["cart_value"].mean()
@@ -79,8 +87,10 @@ def run_quality_checks(df: pd.DataFrame, cfg: dict) -> list[Check]:
     add("у вернувшихся больше прошлых сессий", ses[0] > ses[1])
     cs = d.groupby("traffic_source")["converted"].mean()
     add("конверсия email выше, чем social", cs["email"] > cs["social"])
-    add("выручка коррелирует со стоимостью корзины",
-        d.loc[buyers, ["revenue", "cart_value"]].corr().iloc[0, 1] > 0.5)
+    add(
+        "выручка коррелирует со стоимостью корзины",
+        d.loc[buyers, ["revenue", "cart_value"]].corr().iloc[0, 1] > 0.5,
+    )
     return res
 
 

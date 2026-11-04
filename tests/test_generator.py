@@ -43,11 +43,14 @@ def test_quality_checks_pass(cfg):
     assert failed == []
 
 
-@pytest.mark.parametrize("scenario,low,high", [
-    ("positive", 0.0, 0.02),
-    ("no_effect", -0.01, 0.01),
-    ("negative", -0.02, 0.0),
-])
+@pytest.mark.parametrize(
+    "scenario,low,high",
+    [
+        ("positive", 0.0, 0.02),
+        ("no_effect", -0.01, 0.01),
+        ("negative", -0.02, 0.0),
+    ],
+)
 def test_scenarios_recover_effect(cfg, scenario, low, high):
     cfg["scenario"] = scenario
     df, truth = generate_users(cfg)

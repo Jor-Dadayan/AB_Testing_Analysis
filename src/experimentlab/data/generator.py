@@ -1,4 +1,5 @@
 """Генератор синтетического A/B-датасета на уровне пользователя."""
+
 from __future__ import annotations
 
 import hashlib
@@ -22,16 +23,28 @@ SOURCE_P_BY_DEVICE = {
     "tablet": [0.35, 0.20, 0.25, 0.10, 0.10],
 }
 AGE_MEAN = {"mobile": 32, "desktop": 41, "tablet": 45}
-P_NEW_BY_SOURCE = {"organic": 0.45, "paid_search": 0.60, "direct": 0.20,
-                   "email": 0.10, "social": 0.55}
-COUNTRY_CART_MULT = {"US": 1.2, "UK": 1.1, "DE": 1.1, "FR": 1.05, "CA": 1.1,
-                     "IN": 0.6, "BR": 0.7, "OTHER": 0.9}
+P_NEW_BY_SOURCE = {
+    "organic": 0.45,
+    "paid_search": 0.60,
+    "direct": 0.20,
+    "email": 0.10,
+    "social": 0.55,
+}
+COUNTRY_CART_MULT = {
+    "US": 1.2,
+    "UK": 1.1,
+    "DE": 1.1,
+    "FR": 1.05,
+    "CA": 1.1,
+    "IN": 0.6,
+    "BR": 0.7,
+    "OTHER": 0.9,
+}
 DEVICE_CART_MULT = {"desktop": 1.1, "mobile": 0.95, "tablet": 1.0}
 
 # Вклады в логит вероятности покупки
 DEVICE_EFFECT = {"desktop": 0.25, "mobile": -0.15, "tablet": 0.0}
-SOURCE_EFFECT = {"email": 0.5, "direct": 0.2, "organic": 0.0,
-                 "paid_search": -0.1, "social": -0.35}
+SOURCE_EFFECT = {"email": 0.5, "direct": 0.2, "organic": 0.0, "paid_search": -0.1, "social": -0.35}
 NEW_USER_EFFECT = -0.40
 
 
@@ -57,8 +70,15 @@ def _calibrate_shift(score: np.ndarray, target: float) -> float:
 
 def config_fingerprint(cfg: dict) -> str:
     """Хеш параметров генерации: одинаковые параметры дают одинаковый хеш."""
-    keys = ["seed", "n_users", "scenario", "start_date", "n_days",
-            "treatment_share", "baseline_conversion"]
+    keys = [
+        "seed",
+        "n_users",
+        "scenario",
+        "start_date",
+        "n_days",
+        "treatment_share",
+        "baseline_conversion",
+    ]
     payload = {k: cfg[k] for k in keys}
     payload["scenario_params"] = cfg["scenarios"][cfg["scenario"]]
     raw = json.dumps(payload, sort_keys=True, default=str)
@@ -81,8 +101,9 @@ def generate_users(cfg: dict) -> tuple[pd.DataFrame, dict]:
     hour_w = np.exp(-((h - 20) ** 2) / 50) + np.exp(-((h - 12) ** 2) / 40) + 0.1
     hour = rng.choice(24, n, p=hour_w / hour_w.sum())
     secs = hour * 3600 + rng.integers(0, 3600, n)
-    signup_ts = (pd.DatetimeIndex(dates.to_numpy()[day_idx])
-                 + pd.to_timedelta(secs, unit="s")).to_numpy()
+    signup_ts = (
+        pd.DatetimeIndex(dates.to_numpy()[day_idx]) + pd.to_timedelta(secs, unit="s")
+    ).to_numpy()
 
     # --- Группа: фиксированная доля, случайный порядок ---
     n_treat = int(round(n * cfg["treatment_share"]))
@@ -102,17 +123,26 @@ def generate_users(cfg: dict) -> tuple[pd.DataFrame, dict]:
 
     # --- Корзина (правосторонний разброс, зависит от страны и устройства) ---
     cart_items = 1 + rng.poisson(1.0 + 0.3 * (device == "desktop"), n)
-    log_cart = (np.log(45.0) + np.log(_lookup(country, COUNTRY_CART_MULT))
-                + np.log(_lookup(device, DEVICE_CART_MULT))
-                + 0.15 * (cart_items - 1) + rng.normal(0, 0.45, n))
+    log_cart = (
+        np.log(45.0)
+        + np.log(_lookup(country, COUNTRY_CART_MULT))
+        + np.log(_lookup(device, DEVICE_CART_MULT))
+        + 0.15 * (cart_items - 1)
+        + rng.normal(0, 0.45, n)
+    )
     cart_value = np.clip(np.exp(log_cart), 1.0, None).round(2)
 
     # --- Вероятность покупки (логит) ---
     is_weekend = (pd.DatetimeIndex(signup_ts).day_of_week >= 5).astype(int)
-    score = (_lookup(device, DEVICE_EFFECT) + _lookup(source, SOURCE_EFFECT)
-             + NEW_USER_EFFECT * is_new + 0.06 * np.minimum(sessions, 10)
-             - 0.2 * np.log(cart_value / 45.0) + 0.05 * is_weekend
-             + rng.normal(0, 0.3, n))
+    score = (
+        _lookup(device, DEVICE_EFFECT)
+        + _lookup(source, SOURCE_EFFECT)
+        + NEW_USER_EFFECT * is_new
+        + 0.06 * np.minimum(sessions, 10)
+        - 0.2 * np.log(cart_value / 45.0)
+        + 0.05 * is_weekend
+        + rng.normal(0, 0.3, n)
+    )
     shift0 = _calibrate_shift(score, base)
     shift1 = _calibrate_shift(score, base + sc["conversion_delta"])
     p0, p1 = _sigmoid(score + shift0), _sigmoid(score + shift1)
@@ -126,20 +156,22 @@ def generate_users(cfg: dict) -> tuple[pd.DataFrame, dict]:
     revenue = np.where(converted, cart_value * aov_noise * mult, 0.0).round(2)
     delay_s = np.round(rng.exponential(20, n) * 60 + 60)
 
-    df = pd.DataFrame({
-        "group": group,
-        "signup_ts": signup_ts,
-        "device_type": device,
-        "country": country,
-        "traffic_source": source,
-        "is_new_user": is_new,
-        "age": age,
-        "sessions_prior_30d": sessions,
-        "cart_items": cart_items,
-        "cart_value": cart_value,
-        "converted": converted.astype(int),
-        "revenue": revenue,
-    })
+    df = pd.DataFrame(
+        {
+            "group": group,
+            "signup_ts": signup_ts,
+            "device_type": device,
+            "country": country,
+            "traffic_source": source,
+            "is_new_user": is_new,
+            "age": age,
+            "sessions_prior_30d": sessions,
+            "cart_items": cart_items,
+            "cart_value": cart_value,
+            "converted": converted.astype(int),
+            "revenue": revenue,
+        }
+    )
     df["purchase_ts"] = (df["signup_ts"] + pd.to_timedelta(delay_s, unit="s")).where(converted)
     df = df.sort_values("signup_ts", kind="stable").reset_index(drop=True)
     df.insert(0, "user_id", np.arange(1, n + 1))
@@ -162,8 +194,7 @@ def generate_users(cfg: dict) -> tuple[pd.DataFrame, dict]:
     return df, truth
 
 
-def run_generation(cfg: dict, csv_path: Path, truth_path: Path,
-                   force: bool = False) -> str:
+def run_generation(cfg: dict, csv_path: Path, truth_path: Path, force: bool = False) -> str:
     """Генерирует и сохраняет данные. При тех же параметрах повторно не пересоздаёт."""
     csv_path, truth_path = Path(csv_path), Path(truth_path)
     fp = config_fingerprint(cfg)

@@ -1,4 +1,5 @@
 """Полный цикл: CSV -> PostgreSQL -> user_analytics -> сверка."""
+
 import argparse
 import logging
 import sys
@@ -25,8 +26,10 @@ def main() -> int:
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
-        handlers=[logging.StreamHandler(),
-                  logging.FileHandler(PROJECT_ROOT / "logs" / "load.log", encoding="utf-8")],
+        handlers=[
+            logging.StreamHandler(),
+            logging.FileHandler(PROJECT_ROOT / "logs" / "load.log", encoding="utf-8"),
+        ],
     )
     cfg = load_config()
     csv_path = Path(args.csv) if args.csv else PROJECT_ROOT / cfg["paths"]["raw_csv"]

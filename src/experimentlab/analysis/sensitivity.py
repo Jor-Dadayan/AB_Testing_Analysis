@@ -1,4 +1,5 @@
 """Анализ чувствительности: разные методы, влияние выбросов, регрессионная поправка."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -44,10 +45,12 @@ class SensitivityResult:
 
 def adjusted_effect(df: pd.DataFrame, alpha: float = 0.05, group_col: str = "group_name"):
     """Линейная вероятностная модель с ковариатами ДО эксперимента. Возвращает (tau, low, high, p)."""
-    d = pd.DataFrame({
-        "y": df["converted"].astype(float).to_numpy(),
-        "t": df[group_col].astype(str).eq("treatment").astype(float).to_numpy(),
-    })
+    d = pd.DataFrame(
+        {
+            "y": df["converted"].astype(float).to_numpy(),
+            "t": df[group_col].astype(str).eq("treatment").astype(float).to_numpy(),
+        }
+    )
     terms = ["t"]
     for c in COVARIATES_CAT:
         if c in df.columns:
@@ -74,12 +77,37 @@ def conversion_estimates(df, alpha, n_boot, seed, group_col="group_name") -> lis
     b = bootstrap_conversion_diff(x_c, n_c, x_t, n_t, n_boot, alpha, seed)
     tau, lo, hi, p = adjusted_effect(df, alpha, group_col)
     return [
-        MethodEstimate("conversion", "Z-тест долей (первичный)", True, z.diff, z.ci_low,
-                       z.ci_high, z.p_value, bool(z.p_value < alpha)),
-        MethodEstimate("conversion", "Bootstrap (биномиальный)", True, b.diff, b.ci_low,
-                       b.ci_high, None, excludes_zero(b)),
-        MethodEstimate("conversion", "Регрессия с ковариатами (HC1)", True, tau, lo, hi, p,
-                       bool(p < alpha), "эффект на вероятность покупки"),
+        MethodEstimate(
+            "conversion",
+            "Z-тест долей (первичный)",
+            True,
+            z.diff,
+            z.ci_low,
+            z.ci_high,
+            z.p_value,
+            bool(z.p_value < alpha),
+        ),
+        MethodEstimate(
+            "conversion",
+            "Bootstrap (биномиальный)",
+            True,
+            b.diff,
+            b.ci_low,
+            b.ci_high,
+            None,
+            excludes_zero(b),
+        ),
+        MethodEstimate(
+            "conversion",
+            "Регрессия с ковариатами (HC1)",
+            True,
+            tau,
+            lo,
+            hi,
+            p,
+            bool(p < alpha),
+            "эффект на вероятность покупки",
+        ),
     ]
 
 
@@ -89,28 +117,77 @@ def revenue_estimates(df, alpha, n_boot, seed, winsor_percentiles, group_col="gr
     rt = df.loc[is_t, "revenue"].to_numpy(float)
     out = []
     w = revenue.welch_ttest(rc, rt, alpha)
-    out.append(MethodEstimate("arpu", "Тест Уэлча (вторичный)", True, w.diff, w.ci_low,
-                              w.ci_high, w.p_value, bool(w.p_value < alpha)))
+    out.append(
+        MethodEstimate(
+            "arpu",
+            "Тест Уэлча (вторичный)",
+            True,
+            w.diff,
+            w.ci_low,
+            w.ci_high,
+            w.p_value,
+            bool(w.p_value < alpha),
+        )
+    )
     b = bootstrap_arpu_diff(rc, rt, n_boot, alpha, seed)
-    out.append(MethodEstimate("arpu", "Bootstrap по среднему", True, b.diff, b.ci_low,
-                              b.ci_high, None, excludes_zero(b)))
+    out.append(
+        MethodEstimate(
+            "arpu",
+            "Bootstrap по среднему",
+            True,
+            b.diff,
+            b.ci_low,
+            b.ci_high,
+            None,
+            excludes_zero(b),
+        )
+    )
     positive = np.concatenate([rc[rc > 0], rt[rt > 0]])
     for q in winsor_percentiles:
         cap = float(np.quantile(positive, q))
         ww = revenue.welch_ttest(np.minimum(rc, cap), np.minimum(rt, cap), alpha)
         n_cap = int((rc > cap).sum() + (rt > cap).sum())
-        out.append(MethodEstimate(
-            "arpu", f"Уэлч после винзоризации на {q:.1%} (потолок {cap:,.0f})", True,
-            ww.diff, ww.ci_low, ww.ci_high, ww.p_value, bool(ww.p_value < alpha),
-            f"ограничено значений: {n_cap}"))
+        out.append(
+            MethodEstimate(
+                "arpu",
+                f"Уэлч после винзоризации на {q:.1%} (потолок {cap:,.0f})",
+                True,
+                ww.diff,
+                ww.ci_low,
+                ww.ci_high,
+                ww.p_value,
+                bool(ww.p_value < alpha),
+                f"ограничено значений: {n_cap}",
+            )
+        )
     mw = revenue.mann_whitney(rc, rt)
-    out.append(MethodEstimate("arpu", "Манн-Уитни (другой вопрос)", False,
-                              mw.prob_superiority - 0.5, None, None, mw.p_value,
-                              bool(mw.p_value < alpha), "оценка = P(Y_T > Y_C) + 0.5·P(=) − 0.5"))
+    out.append(
+        MethodEstimate(
+            "arpu",
+            "Манн-Уитни (другой вопрос)",
+            False,
+            mw.prob_superiority - 0.5,
+            None,
+            None,
+            mw.p_value,
+            bool(mw.p_value < alpha),
+            "оценка = P(Y_T > Y_C) + 0.5·P(=) − 0.5",
+        )
+    )
     lw = revenue.welch_ttest(np.log1p(rc), np.log1p(rt), alpha)
-    out.append(MethodEstimate("arpu", "Уэлч на ln(1 + выручка) (другой вопрос)", False,
-                              lw.diff, lw.ci_low, lw.ci_high, lw.p_value,
-                              bool(lw.p_value < alpha), "оценка в лог-единицах"))
+    out.append(
+        MethodEstimate(
+            "arpu",
+            "Уэлч на ln(1 + выручка) (другой вопрос)",
+            False,
+            lw.diff,
+            lw.ci_low,
+            lw.ci_high,
+            lw.p_value,
+            bool(lw.p_value < alpha),
+            "оценка в лог-единицах",
+        )
+    )
     return out
 
 
@@ -122,8 +199,9 @@ def robustness(estimates: list[MethodEstimate], metric: str) -> tuple[bool, str]
     sig = [e.method for e in fam if e.significant]
     non = [e.method for e in fam if not e.significant]
     if sig and non:
-        return False, (f"расхождение по значимости: значим — {', '.join(sig)}; "
-                       f"не значим — {', '.join(non)}")
+        return False, (
+            f"расхождение по значимости: значим — {', '.join(sig)}; не значим — {', '.join(non)}"
+        )
     if len({int(np.sign(e.estimate)) for e in fam}) > 1:
         return False, "оценки имеют разные знаки"
     verdict = "значим" if sig else "не значим"
@@ -145,8 +223,9 @@ def outlier_influence(df: pd.DataFrame, group_col: str = "group_name") -> dict:
     return out
 
 
-def run_sensitivity(df, alpha, n_boot_revenue, n_boot_conversion, seed, winsor_percentiles,
-                    group_col="group_name") -> SensitivityResult:
+def run_sensitivity(
+    df, alpha, n_boot_revenue, n_boot_conversion, seed, winsor_percentiles, group_col="group_name"
+) -> SensitivityResult:
     est = conversion_estimates(df, alpha, n_boot_conversion, seed, group_col)
     est += revenue_estimates(df, alpha, n_boot_revenue, seed, winsor_percentiles, group_col)
     c_ok, c_why = robustness(est, "conversion")

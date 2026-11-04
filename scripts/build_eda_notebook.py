@@ -1,4 +1,5 @@
 """Собирает notebooks/01_eda.ipynb из notebooks/eda_source.py (формат ячеек '# %%')."""
+
 import re
 from pathlib import Path
 
@@ -29,7 +30,10 @@ def build() -> None:
             cells.append(nbf.v4.new_code_cell(body))
     nb = nbf.v4.new_notebook(cells=cells)
     nb.metadata["kernelspec"] = {
-        "display_name": "Python 3", "language": "python", "name": "python3"}
+        "display_name": "Python 3",
+        "language": "python",
+        "name": "python3",
+    }
     nbf.write(nb, DST)
     print(f"Собрано ячеек: {len(cells)} -> {DST}")
 

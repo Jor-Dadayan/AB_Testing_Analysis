@@ -1,4 +1,5 @@
 """Расширенный анализ: python scripts/run_advanced.py -> Markdown-отчёт и JSON."""
+
 import argparse
 import json
 import logging
@@ -24,18 +25,26 @@ def main() -> int:
 
     Path(args.report).parent.mkdir(parents=True, exist_ok=True)
     Path(args.report).write_text(render_advanced_report(res), encoding="utf-8")
-    Path(args.json).write_text(json.dumps(res.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8")
+    Path(args.json).write_text(
+        json.dumps(res.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
     print(f"Источник: {source}")
     print(f"SRM: {'пройдена' if res.srm.passed else 'НЕ ПРОЙДЕНА'} (p={res.srm.p_value:.4f})")
     c = res.base.conversion
-    print(f"Конверсия: {c.diff * 100:+.2f} п.п. [{c.ci_low * 100:+.2f}; {c.ci_high * 100:+.2f}], "
-          f"p={c.p_value:.2e}, вывод: {res.base.conversion_verdict.practical}")
+    print(
+        f"Конверсия: {c.diff * 100:+.2f} п.п. [{c.ci_low * 100:+.2f}; {c.ci_high * 100:+.2f}], "
+        f"p={c.p_value:.2e}, вывод: {res.base.conversion_verdict.practical}"
+    )
     print("Guardrail:", ", ".join(f"{g.name}={g.status}" for g in res.guardrails))
     s = res.segments
-    print(f"Сегменты: тестов {s.n_tests}; значимо сырых {int(s.table['sig_raw'].sum())}, "
-          f"Holm {int(s.table['sig_holm'].sum())}, BH {int(s.table['sig_bh'].sum())}")
-    print(f"Устойчивость: конверсия={res.sensitivity.conversion_robust}, ARPU={res.sensitivity.arpu_robust}")
+    print(
+        f"Сегменты: тестов {s.n_tests}; значимо сырых {int(s.table['sig_raw'].sum())}, "
+        f"Holm {int(s.table['sig_holm'].sum())}, BH {int(s.table['sig_bh'].sum())}"
+    )
+    print(
+        f"Устойчивость: конверсия={res.sensitivity.conversion_robust}, ARPU={res.sensitivity.arpu_robust}"
+    )
     print(f"\nИТОГОВОЕ РЕШЕНИЕ: {res.decision.code}")
     print(f"Отчёт: {args.report}\nJSON:  {args.json}")
     return 0

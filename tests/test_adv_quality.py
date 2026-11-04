@@ -51,8 +51,15 @@ def _stab_frame(early_treat_rate_pct, late_treat_rate_pct):
     for half, rate in ((days[:14], early_treat_rate_pct), (days[14:], late_treat_rate_pct)):
         for g, pct_ in (("control", 10), ("treatment", rate)):
             idx = np.arange(10_000)
-            parts.append(pd.DataFrame({"group_name": g, "signup_date": np.tile(half, 10_000 // 14 + 1)[:10_000],
-                                       "converted": (idx % 100 < pct_).astype(int)}))
+            parts.append(
+                pd.DataFrame(
+                    {
+                        "group_name": g,
+                        "signup_date": np.tile(half, 10_000 // 14 + 1)[:10_000],
+                        "converted": (idx % 100 < pct_).astype(int),
+                    }
+                )
+            )
     return pd.concat(parts, ignore_index=True)
 
 

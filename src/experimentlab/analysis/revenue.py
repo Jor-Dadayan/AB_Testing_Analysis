@@ -1,4 +1,5 @@
 """Анализ выручки: ARPU/ARPPU, тест Уэлча, Манна-Уитни, bootstrap."""
+
 from __future__ import annotations
 
 import math
@@ -78,8 +79,12 @@ def revenue_summary(control, treatment) -> dict[str, dict[str, float]]:
         a = _as_array(x)
         payers = int((a > 0).sum())
         out[name] = {
-            "users": int(a.size), "payers": payers, "payer_share": payers / a.size,
-            "total": total_revenue(a), "arpu": arpu(a), "arppu": arppu(a),
+            "users": int(a.size),
+            "payers": payers,
+            "payer_share": payers / a.size,
+            "total": total_revenue(a),
+            "arpu": arpu(a),
+            "arppu": arppu(a),
         }
     return out
 
@@ -129,11 +134,19 @@ def welch_ttest(
     df = (a + b) ** 2 / (a**2 / (c.size - 1) + b**2 / (t.size - 1))
     t_crit = float(stats.t.ppf(1 - alpha / 2, df))
     return WelchResult(
-        n_control=int(c.size), n_treatment=int(t.size),
-        mean_control=float(c.mean()), mean_treatment=float(t.mean()),
-        diff=diff, se=se, t=t_stat, df=float(df),
-        p_value=_t_p_value(t_stat, df, alternative), alternative=alternative, alpha=alpha,
-        ci_low=diff - t_crit * se, ci_high=diff + t_crit * se,
+        n_control=int(c.size),
+        n_treatment=int(t.size),
+        mean_control=float(c.mean()),
+        mean_treatment=float(t.mean()),
+        diff=diff,
+        se=se,
+        t=t_stat,
+        df=float(df),
+        p_value=_t_p_value(t_stat, df, alternative),
+        alternative=alternative,
+        alpha=alpha,
+        ci_low=diff - t_crit * se,
+        ci_high=diff + t_crit * se,
         assumption_issues=tuple(clt_issues(c, "control") + clt_issues(t, "treatment")),
     )
 
@@ -143,8 +156,10 @@ def mann_whitney(control, treatment, alternative: str = "two-sided") -> MannWhit
     c, t = _as_array(control), _as_array(treatment)
     res = stats.mannwhitneyu(t, c, alternative=alternative, method="asymptotic")
     return MannWhitneyResult(
-        n_control=int(c.size), n_treatment=int(t.size),
-        u_treatment=float(res.statistic), p_value=float(res.pvalue),
+        n_control=int(c.size),
+        n_treatment=int(t.size),
+        u_treatment=float(res.statistic),
+        p_value=float(res.pvalue),
         prob_superiority=float(res.statistic / (t.size * c.size)),
         alternative=alternative,
     )
@@ -168,7 +183,7 @@ def bootstrap_mean_diff_ci(
         k = min(chunk, n_boot - done)
         mean_c = c[rng.integers(0, c.size, size=(k, c.size))].mean(axis=1)
         mean_t = t[rng.integers(0, t.size, size=(k, t.size))].mean(axis=1)
-        diffs[done:done + k] = mean_t - mean_c
+        diffs[done : done + k] = mean_t - mean_c
         done += k
     lo, hi = np.quantile(diffs, [alpha / 2, 1 - alpha / 2])
     return BootstrapResult(float(t.mean() - c.mean()), float(lo), float(hi), n_boot, seed, alpha)

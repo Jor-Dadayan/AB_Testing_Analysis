@@ -1,4 +1,5 @@
 """Связывает расширенные проверки в один воспроизводимый прогон поверх engine этапа 5."""
+
 from __future__ import annotations
 
 import math
@@ -74,23 +75,32 @@ def run_advanced(df: pd.DataFrame, cfg: dict, source: str = "") -> AdvancedResul
     c, nb = base.conversion, int(adv["n_bootstrap_conversion"])
     boot = {
         "conversion": bootstrap_conversion_diff(
-            c.x_control, c.n_control, c.x_treatment, c.n_treatment, nb, alpha, seed),
+            c.x_control, c.n_control, c.x_treatment, c.n_treatment, nb, alpha, seed
+        ),
         "conversion_relative_lift": bootstrap_conversion_relative_lift(
-            c.x_control, c.n_control, c.x_treatment, c.n_treatment, nb, alpha, seed),
+            c.x_control, c.n_control, c.x_treatment, c.n_treatment, nb, alpha, seed
+        ),
         "arpu": base.arpu_bootstrap,  # тот же bootstrap, что и в этапе 5
     }
 
     segs = analyze_segments(d, dims, alpha, int(adv["segment_min_users"]), float(adv["fdr_q"]))
     guards = evaluate_guardrails(d, adv["guardrails"], float(adv["guardrail_alpha"]))
-    sens = run_sensitivity(d, alpha, int(a["n_bootstrap"]), nb, seed, list(adv["winsor_percentiles"]))
+    sens = run_sensitivity(
+        d, alpha, int(a["n_bootstrap"]), nb, seed, list(adv["winsor_percentiles"])
+    )
     quality = assess_experiment_quality(d, cfg, base, srm)
 
     harm_holm = significant_levels(segs.table, "holm", "negative")
     harm_bh = [s for s in significant_levels(segs.table, "bh", "negative") if s not in harm_holm]
     decision = decide(
-        srm_passed=srm.passed, quality_findings=quality.findings,
-        conversion=base.conversion_verdict, guardrails=guards,
-        conversion_robust=sens.conversion_robust, segment_harm_holm=harm_holm,
-        segment_harm_bh=harm_bh, data_sufficient=base.sufficiency["data_sufficient"],
-        criteria=adv.get("success_criteria"))
+        srm_passed=srm.passed,
+        quality_findings=quality.findings,
+        conversion=base.conversion_verdict,
+        guardrails=guards,
+        conversion_robust=sens.conversion_robust,
+        segment_harm_holm=harm_holm,
+        segment_harm_bh=harm_bh,
+        data_sufficient=base.sufficiency["data_sufficient"],
+        criteria=adv.get("success_criteria"),
+    )
     return AdvancedResult(base, srm, srm_seg, boot, segs, guards, sens, quality, decision)

@@ -1,4 +1,5 @@
 """Поправки на множественные сравнения: Bonferroni, Holm, Benjamini-Hochberg."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -43,8 +44,17 @@ def compare_corrections(
     labels, p_values, alpha: float = 0.05, fdr_q: float | None = None
 ) -> pd.DataFrame:
     """Исходные и скорректированные p-values рядом. Для BH порог равен fdr_q (по умолчанию alpha)."""
-    cols = ["label", "p_raw", "p_bonferroni", "p_holm", "q_bh",
-            "sig_raw", "sig_bonferroni", "sig_holm", "sig_bh"]
+    cols = [
+        "label",
+        "p_raw",
+        "p_bonferroni",
+        "p_holm",
+        "q_bh",
+        "sig_raw",
+        "sig_bonferroni",
+        "sig_holm",
+        "sig_bh",
+    ]
     p = _as_p(p_values)
     labels = list(labels)
     if len(labels) != p.size:
@@ -53,8 +63,16 @@ def compare_corrections(
         return pd.DataFrame(columns=cols)
     q = fdr_q if fdr_q is not None else alpha
     bonf, holm, bh = bonferroni_adjust(p), holm_adjust(p), benjamini_hochberg_adjust(p)
-    return pd.DataFrame({
-        "label": labels, "p_raw": p, "p_bonferroni": bonf, "p_holm": holm, "q_bh": bh,
-        "sig_raw": p < alpha, "sig_bonferroni": bonf < alpha,
-        "sig_holm": holm < alpha, "sig_bh": bh < q,
-    })
+    return pd.DataFrame(
+        {
+            "label": labels,
+            "p_raw": p,
+            "p_bonferroni": bonf,
+            "p_holm": holm,
+            "q_bh": bh,
+            "sig_raw": p < alpha,
+            "sig_bonferroni": bonf < alpha,
+            "sig_holm": holm < alpha,
+            "sig_bh": bh < q,
+        }
+    )

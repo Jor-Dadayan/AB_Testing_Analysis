@@ -24,8 +24,14 @@ def test_engine_end_to_end(prepared):
     assert res.meta["n_control"] + res.meta["n_treatment"] == 20_000
     assert res.srm.passed
     assert res.conversion.n_control == res.meta["n_control"]
-    assert res.recommendation in {"SHIP", "SHIP_WITH_MONITORING", "DO_NOT_SHIP",
-                                  "NEED_MORE_DATA", "INVESTIGATE", "INVALID_EXPERIMENT"}
+    assert res.recommendation in {
+        "SHIP",
+        "SHIP_WITH_MONITORING",
+        "DO_NOT_SHIP",
+        "NEED_MORE_DATA",
+        "INVESTIGATE",
+        "INVALID_EXPERIMENT",
+    }
 
 
 def test_engine_is_deterministic(prepared):
@@ -44,7 +50,12 @@ def test_result_is_json_serializable(prepared):
 def test_report_has_sections_and_hides_simulation_truth(prepared):
     df, cfg = prepared
     text = render_report(run_analysis(df, cfg, source="test"))
-    for header in ("## 1. Резюме", "## 5. Конверсия", "## 7. Мощность", "## 8. Статистический вывод"):
+    for header in (
+        "## 1. Резюме",
+        "## 5. Конверсия",
+        "## 7. Мощность",
+        "## 8. Статистический вывод",
+    ):
         assert header in text
     assert "truth" not in text.lower() and "true_conversion" not in text
 

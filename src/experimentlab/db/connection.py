@@ -1,4 +1,5 @@
 """Создание подключения SQLAlchemy."""
+
 from sqlalchemy import Engine, create_engine
 
 from experimentlab.config import database_url

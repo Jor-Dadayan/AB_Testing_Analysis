@@ -14,11 +14,20 @@ def result(adv_df, adv_cfg):
 def test_engine_end_to_end(result):
     assert result.srm.passed
     status = {g.name: g.status for g in result.guardrails}
-    assert status["refund_rate"] == "NOT_EVALUATED" and status["checkout_abandonment"] == "NOT_EVALUATED"
+    assert (
+        status["refund_rate"] == "NOT_EVALUATED"
+        and status["checkout_abandonment"] == "NOT_EVALUATED"
+    )
     assert status["arpu"] == "PASS" and status["aov"] == "PASS"
     assert result.segments.n_tests >= 20
-    assert result.decision.code in {"SHIP", "SHIP_WITH_MONITORING", "NEED_MORE_DATA", "DO_NOT_SHIP",
-                                    "INVESTIGATE", "INVALID_EXPERIMENT"}
+    assert result.decision.code in {
+        "SHIP",
+        "SHIP_WITH_MONITORING",
+        "NEED_MORE_DATA",
+        "DO_NOT_SHIP",
+        "INVESTIGATE",
+        "INVALID_EXPERIMENT",
+    }
 
 
 def test_json_serializable(result):
@@ -28,8 +37,14 @@ def test_json_serializable(result):
 
 def test_report_has_sections_and_hides_truth(result):
     text = render_advanced_report(result)
-    for header in ("## 1. Итоговое решение", "## 2. Проверка SRM", "## 4. Сегментный анализ",
-                   "## 5. Множественные сравнения", "## 6. Guardrail-метрики",
-                   "## 7. Анализ чувствительности", "## 8. Качество эксперимента"):
+    for header in (
+        "## 1. Итоговое решение",
+        "## 2. Проверка SRM",
+        "## 4. Сегментный анализ",
+        "## 5. Множественные сравнения",
+        "## 6. Guardrail-метрики",
+        "## 7. Анализ чувствительности",
+        "## 8. Качество эксперимента",
+    ):
         assert header in text
     assert "true_conversion" not in text and "truth.json" not in text

@@ -1,4 +1,5 @@
 """Чтение и запуск SQL-файлов. Сам SQL живёт в sql/, не в Python."""
+
 from __future__ import annotations
 
 from pathlib import Path

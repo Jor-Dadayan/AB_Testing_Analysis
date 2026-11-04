@@ -1,4 +1,5 @@
 """Мощность, MDE, размер выборки и длительность теста."""
+
 from __future__ import annotations
 
 import math
@@ -32,8 +33,7 @@ def power_two_proportions(
     delta = p_treatment - p_control
     p_bar = (n_control * p_control + n_t * p_treatment) / (n_control + n_t)
     se0 = math.sqrt(p_bar * (1 - p_bar) * (1 / n_control + 1 / n_t))
-    se1 = math.sqrt(p_control * (1 - p_control) / n_control
-                    + p_treatment * (1 - p_treatment) / n_t)
+    se1 = math.sqrt(p_control * (1 - p_control) / n_control + p_treatment * (1 - p_treatment) / n_t)
     z = _z_alpha(alpha, alternative)
     if alternative == "two-sided":
         return float(norm.cdf((delta - z * se0) / se1) + norm.cdf((-delta - z * se0) / se1))
